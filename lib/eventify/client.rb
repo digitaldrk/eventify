@@ -1,4 +1,5 @@
 # frozen_string_literal: true
+
 require 'json'
 require 'faraday'
 
@@ -18,7 +19,9 @@ module Eventify
     def publish(type:, data: {})
       events_url = "#{base_uri}/events"
 
-      response = http_client.post(events_url, { type: type, data: data }, headers)
+      response = http_client.post(
+        events_url, { type: type, data: data }, headers
+      )
       puts response.inspect
     end
 
@@ -33,7 +36,7 @@ module Eventify
     def headers
       {
         'Authorization' => api_key,
-        'Content-Type', 'application/json; charset=utf-8'
+        'Content-Type' => 'application/json; charset=utf-8'
       }
     end
 
