@@ -1,3 +1,5 @@
+[![Build Status](https://travis-ci.org/smakagon/eventify.svg?branch=master)](https://travis-ci.org/smakagon/eventify)
+
 # Eventify
 
 Client for Eventify. Allows to publish events from Ruby-applications.
