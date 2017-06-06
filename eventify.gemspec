@@ -3,6 +3,7 @@
 
 lib = File.expand_path('../lib', __FILE__)
 $LOAD_PATH.unshift(lib) unless $LOAD_PATH.include?(lib)
+require 'eventify'
 require 'eventify/version'
 
 Gem::Specification.new do |spec|
@@ -23,15 +24,13 @@ Gem::Specification.new do |spec|
       'public gem pushes.'
   end
 
-  spec.files = `git ls-files -z`.split("\x0").reject do |f|
-    f.match(%r{^(test|spec|features)/})
-  end
+  spec.files = ['lib/eventify.rb', 'lib/eventify/version.rb']
+  spec.test_files = `git ls-files -- {test,spec,features}/*`.split("\n")
   spec.bindir = 'bin'
   spec.require_paths = ['lib']
 
   spec.add_development_dependency 'bundler', '~> 1.15'
   spec.add_development_dependency 'rake', '~> 10.0'
   spec.add_development_dependency 'rspec', '~> 3.0'
-  spec.add_development_dependency 'rubocop'
-  spec.add_development_dependency 'faraday'
+  spec.add_development_dependency 'rubocop', '~> 0.49.1'
 end
