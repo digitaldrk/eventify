@@ -8,3 +8,11 @@ RSpec::Core::RakeTask.new(:spec)
 RuboCop::RakeTask.new(:rubocop)
 
 task default: %i[rubocop spec]
+
+task :console do
+  exec 'irb -r eventify -I ./lib'
+end
+
+task :build do
+  system 'gem build eventify.gemspec'
+end
