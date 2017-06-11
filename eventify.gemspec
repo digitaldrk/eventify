@@ -24,7 +24,10 @@ Gem::Specification.new do |spec|
       'public gem pushes.'
   end
 
-  spec.files = ['lib/eventify.rb', 'lib/eventify/version.rb']
+  spec.files = ['lib/eventify.rb',
+                'lib/eventify/version.rb',
+                'lib/eventify/client.rb']
+
   spec.test_files = `git ls-files -- {test,spec,features}/*`.split("\n")
   spec.bindir = 'bin'
   spec.require_paths = ['lib']
