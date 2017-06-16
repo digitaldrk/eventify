@@ -2,51 +2,63 @@
 
 require 'net/http'
 require 'uri'
-require 'eventify/version'
 require 'json'
 
 # Eventify allows to publish events from Ruby applications
 module Eventify
-  EventifyError = Class.new(StandardError)
-  InvalidTokenError = Class.new(EventifyError)
-  ServiceUnavailable = Class.new(EventifyError)
+  Error = Class.new(StandardError)
+  ServiceUnavailableError = Class.new(Error)
 
   # Client that allows to publish events
   class Client
-    def initialize(api_key: nil, logger: nil, raise_error: false)
+    BASE_URI = 'http://api.eventify.pro'
+
+    def initialize(api_key: nil, raise_errors: false)
       @api_key = api_key || ENV['EVENTIFY_API_KEY']
-      @logger = logger
-      @raise_error = raise_error
+      if @api_key.to_s.empty?
+        raise Error, 'Please provide api_key param or set EVENTIFY_API_KEY env variable' # rubocop:disable LineLength
+      end
+
+      @raise_errors = raise_errors
     end
 
-    def publish(data)
-      response_body = post_request(data, 'events')
-      return true unless raise_error == true
-      throw_error(response_body)
+    def publish(type:, data:)
+      response = post_request('events', type, data)
+
+      error_message = response['error_message'] || ''
+      raise Eventify::Error, error_message unless error_message.empty?
+
+      true
+    rescue => e
+      process_error(e)
     end
 
     private
 
-    attr_reader :api_key, :logger, :raise_error
+    attr_reader :api_key, :raise_errors
 
-    def throw_error(response_body)
-      return true unless response_body.include?('error_message')
-      raise Eventify::EventifyError, response_body['error_message']
+    def process_error(error)
+      return false unless raise_errors
+
+      raise error if error.is_a?(Error)
+      raise Error, 'Could not publish event'
     end
 
-    def post_request(request_body, end_point)
-      events_url = "#{base_uri}/#{end_point}"
+    def post_request(end_point, type, data)
+      url = "#{BASE_URI}/#{end_point}"
 
-      uri = URI.parse(events_url)
+      uri = URI.parse(url)
       http = Net::HTTP.new(uri.host, uri.port)
       request = Net::HTTP::Post.new(uri.path, headers)
 
-      request.set_form_data(
-        type: request_body[:type],
-        data: request_body[:data]
-      )
+      request.set_form_data(type: type, data: data.to_json)
+
       response = http.request(request)
       JSON.parse(response.body)
+    rescue JSON::ParserError
+      raise Error, 'Could not process response from Eventify'
+    rescue
+      raise ServiceUnavailableError, 'Eventify is currently unavaliable'
     end
 
     def headers
@@ -54,10 +66,6 @@ module Eventify
         'Authorization' => api_key,
         'Content-Type' => 'application/json; charset=utf-8'
       }
-    end
-
-    def base_uri
-      'http://api.eventify.pro'
     end
   end
 end
